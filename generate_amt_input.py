@@ -16,7 +16,7 @@ parser.add_argument('--n-vigilance-tests-per-hit', type=int, default=5)
 parser.add_argument('--n-hits', type=int, default=10)
 # Unique ID so that Turkers can only work on one HIT for any given experiment
 # See http://uniqueturker.myleott.com/ for more information about how this works
-parser.add_argument('--unique-id', type=str, required=True)
+parser.add_argument('--unique-id', type=str, default='000000')
 # The name of the experiment
 parser.add_argument('--experiment-name', type=str, required=True)
 # The name of condition A
@@ -32,32 +32,12 @@ n_real_comparisons_per_hit = args.n_real_comparisons_per_hit
 n_vigilance_tests_per_hit = args.n_vigilance_tests_per_hit
 n_comparisons_per_hit = n_real_comparisons_per_hit + n_vigilance_tests_per_hit
 n_hits = args.n_hits
+total_real_comparisons = n_real_comparisons_per_hit * n_hits
 experiment_name = args.experiment_name
-unique_id = args.unique_ids
+unique_id = args.unique_id
 conditionA = args.conditionA
 conditionB = args.conditionB
-# Compute the name of the output csv file
-output_loc = '{}_{}-vs-{}.csv'.format(experiment_name, conditionA, conditionB)
-
-
-#########################################################################################
-
-
-f = open(output_loc,'w')
-
-first_row = ''
-
-first_row += 'unique_id,'
-
-for comp_idx in range(n_comparisons_per_hit):
-	first_row += 'gt_side' + str(comp_idx+1) + ','
-	first_row += 'images_left' + str(comp_idx+1) + ','
-	first_row += 'images_right' + str(comp_idx+1) + ','	
-
-first_row = first_row[:-1]
-first_row += '\n'
-
-f.write(first_row)
+##############################################################################
 
 
 conditionA_dir = '{}/{}'.format(experiment_name, conditionA)
@@ -66,11 +46,30 @@ vigilance_true_dir = '{}/vigilance_true'.format(experiment_name)
 vigilance_random_dir = '{}/vigilance_random'.format(experiment_name)
 
 for hit_idx in range(n_hits):
+    # Compute the name of the output csv file
+	output_loc = '{}_{}_vs_{}_set{}.csv'.format(experiment_name, conditionA, conditionB, hit_idx + 1)
+
+
+	f = open(output_loc,'w')
+
+	first_row = ''
+
+	first_row += 'unique_id,'
+
+	for comp_idx in range(n_comparisons_per_hit):
+		first_row += 'gt_side' + str(comp_idx+1) + ','
+		first_row += 'images_left' + str(comp_idx+1) + ','
+		first_row += 'images_right' + str(comp_idx+1) + ','	
+
+	first_row = first_row[:-1]
+	first_row += '\n'
+
+	f.write(first_row)
 	row = ''
 	row += unique_id + ','
 	# Build the list of images for each condition
-	images_a = ['{}/{}'.format(conditionA_dir, i) for i in range(1, n_real_comparisons_per_hit+1)]
-	images_b = ['{}/{}'.format(conditionB_dir, i) for i in range(1, n_real_comparisons_per_hit+1)]
+	images_a = ['{}/{}'.format(conditionA_dir, i) for i in range(1 + hit_idx * n_comparisons_per_hit, 1 + (hit_idx + 1) * n_comparisons_per_hit)]
+	images_b = ['{}/{}'.format(conditionB_dir, i) for i in range(1 + hit_idx * n_comparisons_per_hit, 1 + (hit_idx + 1) * n_comparisons_per_hit)]
 	# # Randomize order (this randomizes the pairing)
 	# shuffle(images_a)
 	# shuffle(images_b)
@@ -111,5 +110,4 @@ for hit_idx in range(n_hits):
 	row = row[:-1]
 	row += '\n'
 	f.write(row)
-
-f.close()
+	f.close()

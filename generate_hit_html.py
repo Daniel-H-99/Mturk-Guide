@@ -10,6 +10,11 @@ parser.add_argument('--n-vigilance-tests-per-hit', type=int, default=5)
 # The base URL where the experiment images live
 # For the scene synthesis work, we used an Amazon S3 bucket: https://s3.us-east-2.amazonaws.com/fast-synth-study/
 parser.add_argument('--base-url', type=str, required=True)
+
+parser.add_argument('--is_video', action='store_true')
+
+parser.add_argument('--postfix', type=str, default='.png')
+
 # The description of the experiment that is shown to Turkers
 # For example, for the scene synthesis work, we used the following description:
 # "You will take part in an experiment involving visual perception (~ 5 min).
@@ -36,6 +41,14 @@ hit_template = hit_template.replace('__NUM_VIGILANCE_TESTS__', str(args.n_vigila
 hit_template = hit_template.replace('__IMG_BASE_URL__', f"'{args.base_url}'")
 hit_template = hit_template.replace('__EXPERIMENT_DESCRIPTION__', args.experiment_description)
 hit_template = hit_template.replace('__PROMPT__', f"'{args.prompt}'")
+hit_template = hit_template.replace('__TYPE__', f"{'Video' if args.is_video else 'Image'}")
+hit_template = hit_template.replace('__POSTFIX__', f"'{args.postfix}'")
+
+comp_A = '<video id="imageA" style="display:block;" width="512px" controls></video>' if args.is_video else '<img id="imageA" style="display:block;" width="512px" />'
+comp_B = '<video id="imageB" style="display:block;" width="512px" controls></video>' if args.is_video else '<img id="imageB" style="display:block;" width="512px" />'
+
+hit_template = hit_template.replace('__COMPONENT_TYPE_A__', comp_A)
+hit_template = hit_template.replace('__COMPONENT_TYPE_B__', comp_B)
 
 sequence_helpers = ''
 for i in range(1, n_comparisons+1):
